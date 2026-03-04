@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestión de Tiempo Extra</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SheetJS CDN for strict XLSX support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            /* Color Palette */
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-hover: #1d4ed8;
+            --secondary: #0f172a;
+            --bg-color: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding-bottom: 2rem;
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3 {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Tabs (Role Selector) */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 0.25rem;
+            background: var(--surface);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            overflow-x: auto;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for mobile */
+
+        .tab-btn {
+            flex: 1;
+            min-width: max-content;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(37 99 235 / 0.3);
+        }
+
+        /* Reusable Card */
+        .card {
+            background: var(--surface);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s;
+        }
+
+        /* Form Controls */
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 48px;
+            /* Touch-friendly size */
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: var(--text-main);
+            background: var(--surface);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        /* Buttons */
+        button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 48px;
+            /* Touch target size */
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 0.625rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: var(--success-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            min-height: 36px;
+            padding: 0.5rem;
+            width: auto;
+            border-radius: 0.5rem;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-hover);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        /* Grid Layouts */
+        .grid-1 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .grid-2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Autocomplete UI */
+        .autocomplete-wrapper {
+            position: relative;
+            z-index: 10;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            list-style: none;
+        }
+
+        .autocomplete-list li {
+            padding: 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .autocomplete-list li:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-list li:hover {
+            background: var(--surface-hover);
+        }
+
+        .tag-id {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Dynamic List / Mobile Cards */
+        .worker-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .worker-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 0.75rem;
+        }
+
+        .worker-name {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .time-inputs input[type="time"] {
+            min-height: 44px;
+        }
+
+        /* Ensures readability */
+
+        .horas-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary-light);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .desktop-headers {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .desktop-headers {
+                display: grid;
+                grid-template-columns: 2fr 1fr 2fr 1fr 1fr 1fr auto;
+                gap: 1rem;
+                padding: 0 1rem 0.5rem 1rem;
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--text-muted);
+                border-bottom: 2px solid var(--border);
+                margin-bottom: 1rem;
+            }
+
+            .worker-card {
+                flex-direction: row;
+                display: grid;
+                grid-template-columns: 2fr 1fr 2fr 1fr 1fr 1fr auto;
+                align-items: center;
+                gap: 1rem;
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid var(--border);
+                border-radius: 0;
+                padding: 1rem;
+                margin-bottom: 0;
+            }
+
+            .worker-card-header {
+                border-bottom: none;
+                padding-bottom: 0;
+                justify-content: flex-start;
+            }
+
+            .time-inputs {
+                display: contents;
+            }
+
+            .mobile-label {
+                display: none;
+            }
+
+            .horas-container {
+                background: transparent;
+                padding: 0;
+                justify-content: flex-start;
+            }
+        }
+
+        /* View Toggling */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Report Cards (RRHH & Vigilancia) */
+        .report-card {
+            background: var(--surface);
+            border-left: 4px solid var(--primary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .report-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .report-date {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .report-info {
+            font-weight: 500;
+        }
+
+        .workers-summary {
+            font-size: 0.875rem;
+            color: var(--text-main);
+            background: var(--bg-color);
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Helper Utilities */
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem 0;
+            font-style: italic;
+        }
+
+        /* Estilos Especiales para Impresión (PDF) */
+        @media print {
+            body {
+                font-size: 12px;
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .header,
+            .tabs,
+            main {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            #print-container {
+                position: relative;
+                width: 100%;
+                background: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            @page {
+                size: landscape;
+                margin: 1cm;
+            }
+        }
+
+        .print-only {
+            display: none;
+        }
+
+        /* Modal / Dialog Base Structure */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @media (min-width: 768px) {
+            .desktop-headers {
+                display: grid;
+                grid-template-columns: 2fr 1fr 2fr 1fr 1fr 1fr auto;
+                gap: 1rem;
+                padding: 0 1rem 0.5rem 1rem;
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--text-muted);
+                border-bottom: 2px solid var(--border);
+                margin-bottom: 1rem;
+            }
+
+            .worker-card {
+                flex-direction: row;
+                display: grid;
+                grid-template-columns: 2fr 1fr 2fr 1fr 1fr 1fr auto;
+                align-items: center;
+                gap: 1rem;
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid var(--border);
+                border-radius: 0;
+                padding: 1rem;
+                margin-bottom: 0;
+            }
+
+            .worker-card-header {
+                border-bottom: none;
+                padding-bottom: 0;
+                justify-content: flex-start;
+            }
+
+            .time-inputs {
+                display: contents;
+            }
+
+            .mobile-label {
+                display: none;
+            }
+
+            .horas-container {
+                background: transparent;
+                padding: 0;
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Gestión de Tiempo Extra</h1>
+            <p>Reporte Oficial de Recursos Humanos</p>
+        </header>
+
+        <!-- Role Navigation -->
+        <nav class="tabs" id="roleTabs">
+            <button class="tab-btn active" data-target="view-supervisor">Supervisor</button>
+            <button class="tab-btn" data-target="view-rrhh">Recursos Humanos</button>
+            <button class="tab-btn" data-target="view-vigilance">Vigilancia</button>
+        </nav>
+
+        <!-- Modal Alerta de WhatsApp -->
+        <div class="modal-overlay" id="success-modal">
+            <div class="card" style="width: 90%; max-width: 400px; text-align: center;">
+                <h2 style="color: var(--success); margin-bottom: 1rem;">✅ Solicitud Exitosa</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    La solicitud ha sido registrada en el sistema. Comparte este reporte con Recursos Humanos.
+                </p>
+                <button class="btn-success mb-2" id="btn-share-whatsapp">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                        <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                    Compartir Notificación
+                </button>
+                <button class="btn-outline"
+                    onclick="document.getElementById('success-modal').classList.remove('active')">
+                    Continuar en la App
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor Invisible para Impresión (PDF) -->
+        <div id="print-container" class="print-only"></div>
+
+        <main>
+            <!-- ================= VIEW: SUPERVISOR ================= -->
+            <section id="view-supervisor" class="view-section active">
+                <form id="form-supervisor" onsubmit="event.preventDefault(); submitRequest();">
+
+                    <!-- Encabezado de Solicitud -->
+                    <div class="card">
+                        <h2 class="mb-2">Detalles de la Solicitud</h2>
+                        <div class="grid-2">
+                            <div class="grid-1">
+                                <div>
+                                    <label for="sup-nombre">Supervisor a cargo</label>
+                                    <input type="text" id="sup-nombre" placeholder="Ingrese su nombre" required>
+                                </div>
+                                <div>
+                                    <label for="sup-lider">Líder del Proyecto</label>
+                                    <input type="text" id="sup-lider" placeholder="Nombre completo del líder" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="sup-fecha">Fecha del Tiempo Extra</label>
+                                <input type="date" id="sup-fecha" required>
+
+                                <div class="mt-4 p-4"
+                                    style="background: var(--primary-light); border-radius: 0.5rem; border: 1px solid #bfdbfe;">
+                                    <span style="font-size: 0.875rem; color: var(--primary); font-weight: 500;">Total
+                                        Global</span>
+                                    <div style="font-size: 2rem; font-weight: 700; color: var(--primary);"
+                                        id="total-global-horas">0.0 <span style="font-size:1rem;">hrs</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerta Plantilla Vacía -> Obligar al Supervisor a Cargar -->
+                    <div class="card" id="sup-alerta-plantilla"
+                        style="display: none; border: 2px dashed var(--warning); background-color: #fffbeb;">
+                        <h3
+                            style="color: var(--warning); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                                <path d="M12 9v4" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                            Base de trabajadores vacía
+                        </h3>
+                        <p style="font-size: 0.875rem; color: #78350f; margin-bottom: 1rem;">
+                            Para poder buscar o asignar horas, debes contar con la matriz de empleados cargada en este
+                            dispositivo. Pide el archivo a RRHH e impórtalo pulsando el botón inferior.
+                        </p>
+                        <button type="button" class="btn-outline" style="border-color: var(--warning); color: #b45309;"
+                            onclick="document.getElementById('upload-employees').click()">
+                            Cargar Archivo Excel de Recursos Humanos
+                        </button>
+                    </div>
+
+                    <!-- Buscador y Agregador -->
+                    <div class="card" id="sup-search-section">
+                        <h2 class="mb-2">Personal Asignado</h2>
+                        <div class="autocomplete-wrapper" style="margin-bottom: 1.5rem;">
+                            <label for="search-worker">Buscar Trabajador</label>
+                            <input type="text" id="search-worker" placeholder="Buscar por nombre o ID de empleado..."
+                                autocomplete="off">
+                            <ul class="autocomplete-list" id="autocomplete-list"></ul>
+                        </div>
+
+                        <!-- Lista Dinámica de Trabajadores -->
+                        <div>
+                            <div class="desktop-headers" id="desktop-headers">
+                                <div>Trabajador</div>
+                                <div>Área</div>
+                                <div>Propósito (Motivo)</div>
+                                <div>H. Inicio</div>
+                                <div>H. Fin</div>
+                                <div>Horas</div>
+                                <div>Acción</div>
+                            </div>
+
+                            <div id="worker-list-container">
+                                <div class="empty-state" id="worker-empty">
+                                    Ningún trabajador asignado aún. Utilice el buscador para agregar.
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-success mt-4">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 2 11 13" />
+                                <path d="m22 2-7 20-4-9-9-4Z" />
+                            </svg>
+                            Confirmar y Enviar Solicitud
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ================= VIEW: RECURSOS HUMANOS ================= -->
+            <section id="view-rrhh" class="view-section">
+
+                <!-- Gestión de Plantilla -->
+                <div class="card" id="hr-upload-section" style="margin-bottom: 1.5rem;">
+                    <h2 class="mb-2">Gestión de Empleados</h2>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">
+                        Sube un archivo de Excel (.xlsx) o CSV con el listado oficial de trabajadores para habilitar su
+                        búsqueda local.
+                        <em>Nota: Si la aplicación está en línea, descargará automáticamente la plantilla del
+                            servidor.</em>
+                    </p>
+                    <div
+                        style="background: var(--surface-hover); border: 2px dashed var(--border); border-radius: 0.5rem; padding: 1.5rem; text-align: center;">
+                        <input type="file" id="upload-employees" accept=".xlsx, .xls, .csv" style="display: none;"
+                            onchange="handlePlantillaUpload(event)">
+                        <button class="btn-outline" style="margin: 0 auto; width: auto;"
+                            onclick="document.getElementById('upload-employees').click()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="margin-right: 8px;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" x2="12" y1="3" y2="15" />
+                            </svg>
+                            Cargar Plantilla de Trabajadores
+                        </button>
+                        <div id="plantilla-status"
+                            style="margin-top: 1rem; font-size: 0.875rem; font-weight: 500; color: var(--success);">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="flex-between mb-2">
+                        <h2 style="margin: 0;">Reportes Recibidos</h2>
+                        <button class="btn-outline" style="width: auto; min-height: 36px; padding: 0.5rem 1rem;"
+                            onclick="exportAllToExcel()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" x2="12" y1="15" y2="3" />
+                            </svg>
+                            Exportar Todo
+                        </button>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Reportes pendientes
+                        de consolidación.</p>
+
+                    <div id="rrhh-list-container">
+                        <!-- Las solicitudes se renderizan aquí -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW: VIGILANCIA ================= -->
+            <section id="view-vigilance" class="view-section">
+                <div class="card">
+                    <h2 class="mb-2">Autorizados para Salida (Hoy)</h2>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Modo solo-lectura
+                        optimizado para verificación en punto de control.</p>
+
+                    <div id="vigilance-list-container">
+                        <!-- Las salidas de HOY se renderizan aquí -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // ----------------- MOCK DATABASE / STATE -----------------
+        let EMPLEADOS_DB = []; // Ahora iniciará vacío y se cargará de la plantilla
+
+        let currentWorkers = []; // Trabajadores en la solicitud actual
+        let globalRequests = []; // Simulador de Base de Datos en LocalStorage
+
+        // ----------------- INITIALIZATION -----------------
+        document.addEventListener("DOMContentLoaded", () => {
+            // Establecer fecha actual por defecto
+            document.getElementById("sup-fecha").valueAsDate = new Date();
+
+            // Cargar datos persistentes
+            cargarRequests();
+            cargarPlantilla();
+
+            // Inicializar Interfaces
+            setupTabs();
+            setupAutocomplete();
+            renderWorkerList();
+        });
+
+        // ----------------- UI: TAB NAVIGATION -----------------
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const views = document.querySelectorAll('.view-section');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Actualizar botones
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    // Actualizar vistas
+                    const targetId = tab.getAttribute('data-target');
+                    views.forEach(v => {
+                        v.classList.remove('active');
+                        if (v.id === targetId) v.classList.add('active');
+                    });
+
+                    // Trigger renders si cambiamos a vistas que requieren lectura BD
+                    if (targetId === 'view-rrhh') renderRRHHView();
+                    if (targetId === 'view-vigilance') renderVigilanceView();
+                });
+            });
+        }
+
+        // ----------------- UI: AUTOCOMPLETE SEARCH -----------------
+        function setupAutocomplete() {
+            const searchInput = document.getElementById("search-worker");
+            const listEl = document.getElementById("autocomplete-list");
+
+            searchInput.addEventListener("input", (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                listEl.innerHTML = "";
+
+                if (query.length === 0) {
+                    listEl.style.display = "none";
+                    return;
+                }
+
+                // Filtrar (por ID o subcadena de nombre)
+                const results = EMPLEADOS_DB.filter(emp => (
+                    emp.nombre.toLowerCase().includes(query) ||
+                    emp.id.includes(query)
+                )).slice(0, 5); // Max 5 limit
+
+                if (results.length === 0) {
+                    listEl.innerHTML = "<li style='color: var(--text-muted);'>No se encontraron coincidencias</li>";
+                } else {
+                    results.forEach(emp => {
+                        const li = document.createElement("li");
+                        li.innerHTML = `<span>${emp.nombre}</span> <span class="tag-id">#${emp.id}</span>`;
+                        li.addEventListener("click", () => {
+                            agregarTrabajador(emp);
+                            searchInput.value = "";
+                            listEl.style.display = "none";
+                        });
+                        listEl.appendChild(li);
+                    });
+                }
+                listEl.style.display = "block";
+            });
+
+            // Cerrar autocomplete si hace clic afuera
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest('.autocomplete-wrapper')) {
+                    listEl.style.display = "none";
+                }
+            });
+        }
+
+        // ----------------- SUPERVISOR LOGIC -----------------
+        function agregarTrabajador(empleado) {
+            // Prevenir duplicados
+            if (currentWorkers.some(w => w.id === empleado.id)) {
+                alert("El trabajador ya se encuentra en la lista.");
+                return;
+            }
+
+            currentWorkers.push({
+                uniqueId: Date.now() + Math.random(), // Permite lidiar con la UI fácilmente
+                id: empleado.id,
+                nombre: empleado.nombre,
+                area: empleado.area || 'Sin Área',
+                proposito: '', // Propósito en blanco y modificable p/ copiar y pegar
+                horaInicio: "18:00", // Default asumiendo turno de día
+                horaFin: "20:00",
+                horasCalculadas: 2.0
+            });
+            renderWorkerList();
+        }
+
+        function removerTrabajador(uniqueId) {
+            currentWorkers = currentWorkers.filter(w => w.uniqueId !== uniqueId);
+            renderWorkerList();
+        }
+
+        function handleDataChange(uniqueId, field, value) {
+            const worker = currentWorkers.find(w => w.uniqueId === uniqueId);
+            if (worker) {
+                worker[field] = value;
+
+                // Realizar cálculo de horas si cambian los tiempos
+                if (field === 'horaInicio' || field === 'horaFin') {
+                    if (worker.horaInicio && worker.horaFin) {
+                        let date1 = new Date(`2000-01-01T${worker.horaInicio}:00`);
+                        let date2 = new Date(`2000-01-01T${worker.horaFin}:00`);
+
+                        // Si la hora de fin es menor a la de inicio, asumimos que cruzó la medianoche
+                        if (date2 < date1) {
+                            date2.setDate(date2.getDate() + 1);
+                        }
+
+                        let calc = (date2 - date1) / 3600000; // Milisegundos a horas
+                        worker.horasCalculadas = Math.max(0, calc); // No negativos
+                    } else {
+                        worker.horasCalculadas = 0;
+                    }
+                    renderWorkerList();
+                }
+            }
+        }
+
+        function renderWorkerList() {
+            const container = document.getElementById("worker-list-container");
+            const desktopHeaders = document.getElementById("desktop-headers");
+
+            if (currentWorkers.length === 0) {
+                container.innerHTML = `<div class="empty-state">Ningún trabajador asignado aún. Utilice el buscador para agregar.</div>`;
+                desktopHeaders.style.display = "none";
+                document.getElementById("total-global-horas").innerHTML = "0.0 <span style='font-size:1rem;'>hrs</span>";
+                return;
+            }
+
+            container.innerHTML = "";
+            desktopHeaders.style.display = window.innerWidth >= 768 ? "grid" : "none";
+            let globalHoras = 0;
+
+            currentWorkers.forEach(w => {
+                globalHoras += w.horasCalculadas;
+                const roundedHours = w.horasCalculadas.toFixed(2);
+
+                const card = document.createElement("div");
+                card.className = "worker-card";
+
+                // Usamos una clase especial en desktop para acomodar el grid nuevo de 7 columnas
+                card.innerHTML = `
+                    <div class="worker-card-header">
+                        <div class="worker-name">${w.nombre} <span class="tag-id" style="margin-left:8px;">#${w.id}</span></div>
+                        <button type="button" class="btn-danger" style="display: var(--btn-display, block)" onclick="removerTrabajador(${w.uniqueId})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <label class="mobile-label">Área</label>
+                        <input type="text" value="${w.area}" readonly style="background: var(--surface-hover); color: var(--text-muted); cursor: not-allowed; min-height: 44px;">
+                    </div>
+
+                    <div>
+                        <label class="mobile-label">Propósito del Tiempo Extra</label>
+                        <input type="text" value="${w.proposito}" onchange="handleDataChange(${w.uniqueId}, 'proposito', this.value)" placeholder="Ej. Inventario anual, Soporte, etc." required style="min-height: 44px;">
+                    </div>
+                    
+                    <div class="time-inputs">
+                        <div>
+                            <label class="mobile-label">Hora Inicio</label>
+                            <input type="time" value="${w.horaInicio}" onchange="handleDataChange(${w.uniqueId}, 'horaInicio', this.value)" required>
+                        </div>
+                        <div>
+                            <label class="mobile-label">Hora Término</label>
+                            <input type="time" value="${w.horaFin}" onchange="handleDataChange(${w.uniqueId}, 'horaFin', this.value)" required>
+                        </div>
+                    </div>
+
+                    <div class="horas-container">
+                        <span class="mobile-label" style="color:inherit; margin:0;">Total Horas:</span>
+                        <span>${roundedHours} hrs</span>
+                    </div>
+
+                    <button type="button" class="btn-danger" style="display: var(--btn-display-mobile, none)" onclick="removerTrabajador(${w.uniqueId})">Eliminar</button>
+                `;
+                container.appendChild(card);
+            });
+
+            // Actualizar Label Global
+            document.getElementById("total-global-horas").innerHTML = `${globalHoras.toFixed(2)} <span style='font-size:1rem;'>hrs</span>`;
+        }
+
+        // Listener de Resize para header responsivo
+        window.addEventListener('resize', () => {
+            const h = document.getElementById("desktop-headers");
+            if (currentWorkers.length > 0) {
+                h.style.display = window.innerWidth >= 768 ? "grid" : "none";
+            }
+        });
+
+        function submitRequest() {
+            if (currentWorkers.length === 0) {
+                alert("Debe agregar al menos un trabajador a la solicitud.");
+                return;
+            }
+
+            // Validar horas nulas/negativas
+            if (currentWorkers.some(w => w.horasCalculadas <= 0)) {
+                alert("Revise los tiempos. Existen colaboradores con cero o menos horas de duración.");
+                return;
+            }
+
+            const req = {
+                reqId: Date.now(),
+                creadoEn: new Date().toISOString(),
+                supervisor: document.getElementById("sup-nombre").value,
+                lider: document.getElementById("sup-lider").value,
+                fecha: document.getElementById("sup-fecha").value,
+                empleados: [...currentWorkers]
+            };
+
+            globalRequests.push(req);
+            guardarRequests();
+
+            // Construir mensaje de WhatsApp / Notificación Móvil
+            const fechaFormato = new Date(req.fecha).toLocaleDateString();
+            const textoShare = `*NUEVA SOLICITUD DE TIEMPO EXTRA*%0A%0A*Supervisor:* ${req.supervisor}%0A*Líder:* ${req.lider}%0A*Fecha:* ${fechaFormato}%0A*Trabajadores:* ${req.empleados.length}%0A*Total Horas Extra:* ${currentWorkers.reduce((acc, w) => acc + w.horasCalculadas, 0).toFixed(1)} hrs%0A%0A_Por favor, ingrese al tablero HR para su validación e impresión._`;
+
+            // Preparar el botón modal para WebShare API o Fallback enlace WA
+            const modal = document.getElementById("success-modal");
+            const shareBtn = document.getElementById("btn-share-whatsapp");
+
+            shareBtn.onclick = async () => {
+                const textNormalizado = decodeURIComponent(textoShare);
+                // Si soporta API Web Share NATIVA (Móviles)
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'Solicitud Tiempo Extra',
+                            text: textNormalizado
+                        });
+                        modal.classList.remove('active');
+                        return;
+                    } catch (err) {
+                        console.log('Share cancelado o fallido', err);
+                    }
+                }
+                // Fallback a URL the WhatsApp (Desktop o si falla API)
+                window.open(`https://api.whatsapp.com/send?text=${textoShare}`, '_blank');
+                modal.classList.remove('active');
+            };
+
+            // Mostrar el modal de confirmación en vez del alert()
+            modal.classList.add('active');
+
+            // Limpiar form
+            document.getElementById("form-supervisor").reset();
+            document.getElementById("sup-fecha").valueAsDate = new Date();
+            currentWorkers = [];
+            renderWorkerList();
+        }
+
+        // ----------------- LOCAL STORAGE Y PLANTILLA -----------------
+        function cargarRequests() {
+            const db = localStorage.getItem("hr_requests_db");
+            if (db) globalRequests = JSON.parse(db);
+        }
+
+        function guardarRequests() {
+            localStorage.setItem("hr_requests_db", JSON.stringify(globalRequests));
+        }
+
+        async function cargarPlantilla() {
+            const statusEl = document.getElementById("plantilla-status");
+            const supAlert = document.getElementById("sup-alerta-plantilla");
+            const supSearch = document.getElementById("sup-search-section");
+            const hrUpload = document.getElementById("hr-upload-section");
+
+            // Intentar descargar automáticamente desde el servidor (Si estamos en GitHub u host similar)
+            if (window.location.protocol.startsWith('http')) {
+                try {
+                    if (statusEl) {
+                        statusEl.style.color = "var(--text-muted)";
+                        statusEl.innerText = "Buscando plantilla remota...";
+                    }
+                    const response = await fetch('./plantilla.xlsx');
+                    if (response.ok) {
+                        const buffer = await response.arrayBuffer();
+                        const data = new Uint8Array(buffer);
+                        const workbook = XLSX.read(data, { type: 'array' });
+
+                        const exito = procesarWorkbook(workbook);
+                        if (exito) {
+                            if (statusEl) statusEl.innerHTML = `✅ Plantilla Global en Línea: ${EMPLEADOS_DB.length} empleados registrados.`;
+                            if (supAlert) supAlert.style.display = "none";
+                            if (supSearch) supSearch.style.display = "block";
+                            // Ocultar carga manual si ya la bajó del servidor automáticamente
+                            if (hrUpload) hrUpload.style.display = "none";
+                            return; // Terminamos aquí porque cargó de internet directo
+                        }
+                    }
+                } catch (error) {
+                    console.log("No se pudo descargar plantilla remota, intentando carga local.", error);
+                }
+            }
+
+            // Fallback: Si no está en servidor, falla el fetch o estamos en local (file://), intentar cargar del LocalStorage
+            const plantillaDb = localStorage.getItem("hr_empleados_db");
+
+            if (plantillaDb) {
+                EMPLEADOS_DB = JSON.parse(plantillaDb);
+                if (statusEl) statusEl.innerHTML = `✅ Plantilla local activa: ${EMPLEADOS_DB.length} empleados registrados.`;
+                if (supAlert) supAlert.style.display = "none";
+                if (supSearch) supSearch.style.display = "block";
+                if (hrUpload) hrUpload.style.display = "block";
+            } else {
+                if (statusEl) {
+                    statusEl.style.color = "var(--warning)";
+                    statusEl.innerHTML = "⚠️ No hay plantilla cargada. El buscador no funcionará.";
+                }
+                if (supAlert) supAlert.style.display = "block";
+                if (supSearch) supSearch.style.display = "none";
+                if (hrUpload) hrUpload.style.display = "block";
+            }
+        }
+
+        function procesarWorkbook(workbook) {
+            try {
+                // Tomamos la primera hoja
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                // Convertimos a JSON (arreglo de objetos)
+                const jsonObject = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (jsonObject.length < 2) return false;
+
+                // Identificar índices de columnas
+                const headers = jsonObject[0].map(h => (h || "").toString().toLowerCase().trim());
+
+                let idIndex = headers.findIndex(h => h.includes("empleado") || h === "id" || h === "no" || h === "n" || h.includes("núm"));
+                let nameIndex = headers.findIndex(h => h.includes("nombre"));
+                let areaIndex = headers.findIndex(h => h.includes("area") || h.includes("área") || h.includes("departamento") || h.includes("depto") || h.includes("puesto"));
+
+                if (idIndex === -1 || nameIndex === -1) {
+                    idIndex = 0;
+                    nameIndex = 1;
+                    areaIndex = headers.length > 2 ? 2 : -1;
+                }
+
+                const nuevosEmpleados = [];
+
+                for (let i = 1; i < jsonObject.length; i++) {
+                    const row = jsonObject[i];
+                    if (row.length === 0 || !row[nameIndex]) continue;
+
+                    const empId = row[idIndex] ? String(row[idIndex]).trim() : `EMP-${i}`;
+                    const empNombre = String(row[nameIndex]).trim();
+                    const empArea = (areaIndex !== -1 && row[areaIndex]) ? String(row[areaIndex]).trim() : "Sin Área";
+
+                    nuevosEmpleados.push({
+                        id: empId,
+                        nombre: empNombre,
+                        area: empArea
+                    });
+                }
+
+                EMPLEADOS_DB = nuevosEmpleados;
+                return true;
+            } catch (error) {
+                console.error("Error en procesarWorkbook", error);
+                return false;
+            }
+        }
+
+        function handlePlantillaUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById("plantilla-status");
+            statusEl.style.color = "var(--text-muted)";
+            statusEl.innerText = "Procesando archivo...";
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    const exito = procesarWorkbook(workbook);
+
+                    if (!exito) throw new Error("Archivo inválido o vacío.");
+
+                    // Guardar en localstorage si fue manual
+                    localStorage.setItem("hr_empleados_db", JSON.stringify(EMPLEADOS_DB));
+
+                    statusEl.style.color = "var(--success)";
+                    statusEl.innerHTML = `✅ Plantilla cargada con éxito: ${EMPLEADOS_DB.length} trabajadores.`;
+
+                    // Actualizamos las vistas base
+                    cargarPlantilla();
+                    alert(`¡Éxito! Plantilla importada en tu dispositivo. Se encontraron ${EMPLEADOS_DB.length} empleados.`);
+                } catch (error) {
+                    console.error("Error validando plantilla:", error);
+                    statusEl.style.color = "var(--danger)";
+                    statusEl.innerHTML = "❌ Error leyendo el archivo. Asegúrese de que sea un formato válido (.xlsx o .csv).";
+                }
+
+                event.target.value = "";
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ----------------- RRHH & EXPORT VIEWS -----------------
+        function renderRRHHView() {
+            const container = document.getElementById("rrhh-list-container");
+            container.innerHTML = "";
+
+            if (globalRequests.length === 0) {
+                container.innerHTML = "<div class='empty-state'>No hay reportes de tiempo extra registrados.</div>";
+                return;
+            }
+
+            // Invertir arreglo para mostrar los recientes primero
+            const sortedReqs = [...globalRequests].sort((a, b) => b.reqId - a.reqId);
+
+            sortedReqs.forEach(req => {
+                const totalReqHours = req.empleados.reduce((sum, w) => sum + w.horasCalculadas, 0);
+                const reqDateFormatted = new Date(req.creadoEn).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+
+                const rp = document.createElement("div");
+                rp.className = "report-card";
+                rp.innerHTML = `
+                    <div class="report-card-top" style="flex-wrap: wrap; gap: 0.5rem;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div class="report-info">${req.fecha} - Supervisor: ${req.supervisor}</div>
+                            <div class="report-date">Aceptado el ${reqDateFormatted} | ${req.empleados.length} Registros </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-outline" style="width: auto; padding: 0.5rem; min-height: 36px; border-radius: 0.5rem;" onclick="imprimirSolicitud(${req.reqId}, event)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                Imprimir PDF
+                            </button>
+                            <button class="btn-primary" style="width: auto; padding: 0.5rem 1rem; min-height: 36px; border-radius: 0.5rem;" onclick="exportarExcelUnico(${req.reqId})">
+                                Descargar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="workers-summary">
+                        Total acumulado: <strong>${totalReqHours.toFixed(2)} hrs extra</strong>.<br/>
+                        Líder del proyecto: ${req.lider}
+                    </div>
+                `;
+                container.appendChild(rp);
+            });
+        }
+
+        // ----------------- IMPRESIÓN (PDF) Y EXPORTACIÓN -----------------
+        function imprimirSolicitud(id, event) {
+            // Evitar comportamiento si botón expone default
+            if (event) event.preventDefault();
+
+            const req = globalRequests.find(r => r.reqId === id);
+            if (!req) return;
+
+            const printDiv = document.getElementById("print-container");
+            const reqDateFormatted = new Date(req.creadoEn).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+
+            let tbHtml = `
+                <div style="font-family: Arial, sans-serif; color: #000; background: #fff; padding: 20px;">
+                    <h2 style="text-align:center; font-size: 20px; text-transform:uppercase; margin-bottom: 20px;">Autorización Oficial de Tiempo Extra</h2>
+                    <table style="width:100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ccc;"><strong>Supervisor:</strong> ${req.supervisor}</td>
+                            <td style="padding: 5px; border: 1px solid #ccc;"><strong>Líder de Proyecto:</strong> ${req.lider}</td>
+                            <td style="padding: 5px; border: 1px solid #ccc;"><strong>Fecha T.E.:</strong> ${req.fecha}</td>
+                        </tr>
+                    </table>
+
+                    <table style="width:100%; border-collapse: collapse; font-size: 12px; margin-bottom: 40px; text-align: center;">
+                        <thead>
+                            <tr style="background:#f0f0f0;">
+                                <th style="border: 1px solid #000; padding: 6px;">No. Empleado</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: left;">Nombre</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: left;">Área</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: left;">Propósito</th>
+                                <th style="border: 1px solid #000; padding: 6px;">Hora Inicio</th>
+                                <th style="border: 1px solid #000; padding: 6px;">Hora Fin</th>
+                                <th style="border: 1px solid #000; padding: 6px;">Hrs Totales</th>
+                                <th style="border: 1px solid #000; padding: 6px; width: 18%;">Firma del Trabajador</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            req.empleados.forEach(emp => {
+                tbHtml += `
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 6px;">${emp.id}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: left;">${emp.nombre}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: left;">${emp.area}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: left;">${emp.proposito || '-'}</td>
+                                <td style="border: 1px solid #000; padding: 6px;">${emp.horaInicio}</td>
+                                <td style="border: 1px solid #000; padding: 6px;">${emp.horaFin}</td>
+                                <td style="border: 1px solid #000; padding: 6px;">${emp.horasCalculadas.toFixed(2)}</td>
+                                <!-- La fila de firma tiene alto especial 45px por trabajador -->
+                                <td style="border: 1px solid #000; padding: 6px; height: 45px;"></td>
+                            </tr>
+                `;
+            });
+
+            tbHtml += `
+                        </tbody>
+                    </table>
+
+                    <table style="width:100%; border: none; text-align: center; margin-top: 60px; font-size: 14px;">
+                        <tr>
+                            <td style="width: 33%;">
+                                ________________________________<br><br>
+                                Solicitó: <strong>${req.supervisor}</strong><br>
+                                <span style="font-size: 12px; color: #555;">Supervisor Responsable</span>
+                            </td>
+                            <td style="width: 33%;">
+                                ________________________________<br><br>
+                                Validó Sec. RH: <strong>Lic. Omar López</strong><br>
+                                <span style="font-size: 12px; color: #555;">Recursos Humanos</span>
+                            </td>
+                            <td style="width: 33%;">
+                                ________________________________<br><br>
+                                Por Vigilancia: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+                                <span style="font-size: 12px; color: #555;">Firma de Conformidad</span>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <div style="font-size: 10px; color: #777; margin-top: 40px; text-align: right;">
+                        Reporte Generado por Sistema Integrado de RRHH: Fecha de Petición ${reqDateFormatted}
+                    </div>
+                </div>
+            `;
+
+            // Modificar la clase del contenedor de impresion momentaneamente 
+            printDiv.classList.remove('print-only'); // Removemos el display: none normal
+            printDiv.innerHTML = tbHtml;
+
+            // Trigger al navegador para abrir diálogo de Impresión nativo
+            setTimeout(() => {
+                window.print();
+
+                // Retornar a modo web 
+                setTimeout(() => {
+                    printDiv.innerHTML = "";
+                    printDiv.classList.add('print-only');
+                }, 1000); // Dar suficiente tiempo para que dialogue de print cierre o se copie
+            }, 300);
+        }
+
+        function buildSheetData(requestArray) {
+            const data = [
+                ["Fecha Extra", "Supervisor", "Líder de Proyecto", "No. Trabajador", "Nombre del Trabajador", "Área", "Propósito", "Hora Inicio", "Hora Término", "Total Horas"]
+            ];
+
+            requestArray.forEach(req => {
+                req.empleados.forEach(emp => {
+                    data.push([
+                        req.fecha,
+                        req.supervisor,
+                        req.lider,
+                        emp.id,
+                        emp.nombre,
+                        emp.area,
+                        emp.proposito || '',
+                        emp.horaInicio,
+                        emp.horaFin,
+                        emp.horasCalculadas.toFixed(2)
+                    ]);
+                });
+            });
+            return data;
+        }
+
+        function doExportXLSX(dataArray, filename) {
+            if (typeof XLSX !== 'undefined') {
+                const ws = XLSX.utils.aoa_to_sheet(dataArray);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Tiempo Extra");
+                XLSX.writeFile(wb, filename);
+            } else {
+                // Fallback CSV (Generar manual)
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+                dataArray.forEach(row => { csvContent += row.join(",") + "\\n"; });
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", filename.replace(".xlsx", ".csv"));
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
+        }
+
+        function exportAllToExcel() {
+            if (globalRequests.length === 0) return alert("No hay datos para exportar.");
+            const data = buildSheetData(globalRequests);
+            doExportXLSX(data, "Consolidado_Tiempo_Extra_RRHH.xlsx");
+        }
+
+        function exportarExcelUnico(id) {
+            const req = globalRequests.find(r => r.reqId === id);
+            if (req) {
+                const data = buildSheetData([req]);
+                doExportXLSX(data, `Reporte_Extra_${req.supervisor.replace(' ', '_')}_${req.fecha}.xlsx`);
+            }
+        }
+
+        // ----------------- VIGILANCIA VIEW -----------------
+        function renderVigilanceView() {
+            const container = document.getElementById("vigilance-list-container");
+            container.innerHTML = "";
+
+            // Filtramos solicitudes que sean de "HOY" en base al form "fecha" (YYYY-MM-DD)
+            const todayStr = new Date().toISOString().split('T')[0];
+            const activeReqs = globalRequests.filter(req => req.fecha === todayStr);
+
+            if (activeReqs.length === 0) {
+                container.innerHTML = "<div class='empty-state'>Sin programación de salidas extra para la fecha de hoy.</div>";
+                return;
+            }
+
+            // Mezclar empleados de todas las solicitudes y ordenarlas por hora fin
+            let allWorkers = [];
+            activeReqs.forEach(req => {
+                req.empleados.forEach(emp => {
+                    // Copiar datos e inyectar origen
+                    allWorkers.push({ ...emp, _supervisor: req.supervisor });
+                });
+            });
+
+            // Ordenar por hora de fin
+            allWorkers.sort((a, b) => a.horaFin.localeCompare(b.horaFin));
+
+            allWorkers.forEach(w => {
+                const div = document.createElement("div");
+                div.className = "report-card";
+                div.style.borderLeftColor = "var(--warning)";
+                div.innerHTML = `
+                    <div class="flex-between">
+                        <div style="font-weight:600; font-size: 1.125rem;">${w.nombre}</div>
+                        <div style="background:var(--bg-color); padding:0.25rem 0.5rem; border-radius:0.25rem; font-weight:700;">${w.horaFin} hrs</div>
+                    </div>
+                    <div style="font-size: 0.875rem; color:var(--text-muted); margin-top:0.25rem;">
+                        Supervisor: ${w._supervisor} | ID: #${w.id}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+
+</html>
